@@ -1,0 +1,25 @@
+# YouTube Summarizer Configuration
+
+app:
+  check_frequency: "daily"  # daily, weekly, hourly
+  email_frequency: "weekly" # daily, weekly
+
+youtube:
+  max_videos_per_channel: 2
+
+processing:
+  max_concurrent_videos: 3
+  transcript_timeout: "30s"
+
+email:
+  smtp_host: "smtp.gmail.com"
+  smtp_port: 587
+  subject_template: "YouTube Summary - {date}"
+
+ai:
+  max_transcript_length: 15000
+  summary_prompt: |
+    Video Title: "{title}". Summarize the key takeaways from the following video 
+    transcript into a concise paragraph. Focus on the main points and actionable advice:
+    
+    {transcript}

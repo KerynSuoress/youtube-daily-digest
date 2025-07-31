@@ -1,0 +1,225 @@
+---
+alwaysApply: true
+---
+
+# YouTube Summarizer Go Project - Cursor Rules
+
+## Project Overview
+Build an enterprise-grade YouTube video summarizer in Go that:
+- Fetches videos from specified YouTube channels
+- Gets transcripts and summarizes them using Claude API
+- Stores data in Excel files
+- Sends configurable email digests (daily/weekly)
+- Creates cross-platform executables for distribution
+- Uses proper enterprise Go project structure for future UI expansion
+
+## Go Development Philosophy
+- **No Magic**: Every component should be explicit and understandable
+- **Interfaces Over Implementations**: Design for testability and future UI expansion
+- **Proper Error Handling**: Use Go's explicit error handling patterns
+- **Concurrent by Design**: Use goroutines and channels for video processing
+- **Configuration-Driven**: All behavior controlled via config files
+- **Enterprise Structure**: Organized for maintainability and scaling
+
+## Project Structure
+```
+youtube-summarizer/
+├── cmd/
+│   └── summarizer/
+│       └── main.go              # Entry point, dependency injection
+├── internal/
+│   ├── config/
+│   │   ├── config.go           # Configuration structures
+│   │   └── loader.go           # Config loading logic
+│   ├── clients/
+│   │   ├── youtube.go          # YouTube API client
+│   │   ├── claude.go           # Claude API client
+│   │   └── transcript.go       # Transcript API client
+│   ├── storage/
+│   │   ├── excel.go            # Excel operations
+│   │   └── models.go           # Data structures
+│   ├── services/
+│   │   ├── processor.go        # Main business logic
+│   │   └── emailer.go          # Email service
+│   └── logger/
+│       └── logger.go           # Structured logging
+├── pkg/
+│   └── types/
+│       └── types.go            # Shared types/interfaces
+├── configs/
+│   ├── config.yaml             # App configuration
+│   └── template.xlsx           # Excel template
+├── go.mod
+├── go.sum
+├── .env.example
+└── README.md
+```
+
+## Required Dependencies
+```go
+// Configuration and environment
+"github.com/spf13/viper"
+"github.com/joho/godotenv"
+
+// Excel file handling
+"github.com/360EntSecGroup-Skylar/excelize/v2"
+
+// Email functionality
+"gopkg.in/gomail.v2"
+
+// HTTP clients and JSON
+"net/http"
+"encoding/json"
+
+// Structured logging
+"go.uber.org/zap"
+
+// Context and concurrency
+"context"
+"sync"
+```
+
+## Core Configuration Structure
+```yaml
+# configs/config.yaml
+app:
+  check_frequency: "daily"  # daily, weekly, hourly
+  email_frequency: "weekly" # daily, weekly
+  
+youtube:
+  max_videos_per_channel: 5
+  
+processing:
+  max_concurrent_videos: 3
+  transcript_timeout: "30s"
+  
+email:
+  smtp_host: "smtp.gmail.com"
+  smtp_port: 587
+  subject_template: "YouTube Summary - {date}"
+  
+ai:
+  max_transcript_length: 15000
+  summary_prompt: |
+    Video Title: "{title}". Summarize the key takeaways from the following video 
+    transcript into a concise paragraph. Focus on the main points and actionable advice:
+    
+    {transcript}
+```
+
+## Key Interfaces for Future UI Expansion
+```go
+// pkg/types/types.go
+type VideoProcessor interface {
+    ProcessNewVideos() error
+    GetProcessedVideos() ([]Video, error)
+    UpdateConfig(Config) error
+}
+
+type Storage interface {
+    GetChannels() ([]Channel, error)
+    SaveSummary(Summary) error
+    GetPendingSummaries() ([]Summary, error)
+    MarkSummariesProcessed([]string) error
+}
+
+type AIClient interface {
+    Summarize(transcript, title string) (string, error)
+}
+
+type EmailService interface {
+    SendDigest(summaries []Summary) error
+}
+```
+
+## API Integration Requirements
+- **YouTube Data API v3**: For fetching channel videos
+- **Claude API**: For video summarization (replace Gemini from original)
+- **Transcript API**: RapidAPI YouTube Transcriptor or alternative
+- **SMTP**: For email delivery
+
+## Concurrency Patterns
+- Use worker pools for processing multiple videos
+- Channel-based communication between goroutines  
+- Context-based cancellation and timeouts
+- WaitGroups for coordinating concurrent operations
+
+## Error Handling Standards
+- Always return explicit errors
+- Wrap errors with context using fmt.Errorf
+- Log errors with structured logging
+- Graceful degradation (continue processing other videos if one fails)
+
+## Excel File Structure
+- **Channels Sheet**: Channel IDs and names to monitor
+- **ProcessedVideos Sheet**: Track processed video IDs to avoid reprocessing
+- **Summaries Sheet**: Store video summaries with status (New/Processed)
+
+## Cross-Platform Build Strategy
+```bash
+# Build commands for distribution
+GOOS=windows GOARCH=amd64 go build -o youtube-summarizer-windows.exe ./cmd/summarizer
+GOOS=darwin GOARCH=amd64 go build -o youtube-summarizer-mac ./cmd/summarizer  
+GOOS=linux GOARCH=amd64 go build -o youtube-summarizer-linux ./cmd/summarizer
+```
+
+## Future UI Considerations
+**Desktop Options:**
+- Fyne (pure Go, native performance)
+- Wails (Go backend + React/Vue frontend)
+
+**Web Options:**
+- Go + htmx (server-side rendered)
+- Go REST API + React frontend
+
+The current architecture supports both by keeping business logic in services with clear interfaces.
+
+## Development Priorities
+1. **Functionality First**: Get core features working
+2. **Clean Architecture**: Proper separation of concerns
+3. **Configurability**: Easy to customize behavior
+4. **Reliability**: Robust error handling and logging
+5. **Portability**: Single executable distribution
+
+## Code Style Guidelines
+- Use Go standard formatting (gofmt)
+- Prefer explicit over implicit
+- Document public interfaces
+- Use meaningful variable names
+- Keep functions focused and small
+- Group related functionality in packages
+
+## Testing Strategy (Future)
+- Unit tests for individual components
+- Integration tests for API interactions
+- Mock implementations for external services
+- Test data isolation using interfaces
+
+## Environment Variables (.env)
+```
+YOUTUBE_API_KEY=your_youtube_api_key
+CLAUDE_API_KEY=your_claude_api_key
+RAPID_API_KEY=your_rapidapi_key
+EMAIL_USERNAME=your_email
+EMAIL_PASSWORD=your_app_password
+```
+
+## Logging Requirements
+- Structured logging with different levels
+- File-based logging for production use
+- JSON format for machine readability
+- Separate logs for errors, processing events, and debug info
+
+## Performance Considerations
+- Concurrent processing of multiple videos
+- HTTP client pooling and timeouts
+- Memory-efficient handling of large transcripts
+- Batch processing of Excel operations
+
+Remember: This is an enterprise-grade structure for a simple project. The goal is to learn proper Go patterns while building something immediately useful that can evolve into a larger application.
+
+Always keep a log of your tasks in a file called tasks.md (if it doesn't exist create the file):
+  1. Develop a game plan in tasks.md
+  2. Create an actionable task list with checks
+  3. Checkout actions that you complete as you are making progress
+  4. Document bugs or refactors or versioning at the end of the file

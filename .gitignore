@@ -1,0 +1,86 @@
+# YouTube Summarizer - Go Project .gitignore
+
+# Binaries and executables
+summarizer
+youtube-summarizer
+youtube-summarizer-*
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go build artifacts
+*.test
+*.out
+/go.sum
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Excel data files (contains processed videos and summaries)
+youtube-data.xlsx
+*.xlsx
+*.xls
+
+# Logs
+*.log
+logs/
+log/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+/tmp/
+/temp/
+
+# Config files with sensitive data
+config.local.yaml
+config.prod.yaml
+
+# Build directories
+/dist/
+/build/
+/bin/
+
+# Test coverage
+coverage.out
+coverage.html
+
+# Go modules
+go.work
+go.work.sum
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# API keys and credentials backup
+*.key
+*.pem
+*.p12
+credentials.json
+
+# Email templates backup (if you create custom ones)
+custom-templates/
+
+# Development and testing artifacts
+test-data/
+debug/
+*.debug
