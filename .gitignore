@@ -1,7 +1,6 @@
 # YouTube Summarizer - Go Project .gitignore
 
 # Binaries and executables
-summarizer
 youtube-summarizer
 youtube-summarizer-*
 *.exe
