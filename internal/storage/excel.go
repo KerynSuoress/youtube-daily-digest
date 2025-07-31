@@ -157,7 +157,7 @@ func (es *ExcelStorage) SaveSummary(ctx context.Context, summary types.Summary) 
 	nextRow := len(rows) + 1
 	excelSummary := FromSummary(summary)
 
-	// Write summary data
+	// Write summary data - all 12 columns
 	data := []interface{}{
 		excelSummary.ID,
 		excelSummary.VideoID,
@@ -167,6 +167,10 @@ func (es *ExcelStorage) SaveSummary(ctx context.Context, summary types.Summary) 
 		excelSummary.CreatedAt,
 		excelSummary.Status,
 		excelSummary.VideoURL,
+		excelSummary.PublishedAt,
+		excelSummary.ThumbnailURL,
+		excelSummary.Duration,
+		excelSummary.ViewCount,
 	}
 
 	for i, value := range data {

@@ -138,14 +138,18 @@ func (es *EmailService) SendTestEmail(ctx context.Context) error {
 
 	// Create test summary
 	testSummary := types.Summary{
-		ID:          "test-001",
-		VideoID:     "dQw4w9WgXcQ",
-		VideoTitle:  "Test Video Title",
-		ChannelName: "Test Channel",
-		Summary:     "This is a test summary to verify that the email system is working correctly. If you receive this email, your YouTube summarizer email configuration is properly set up.",
-		CreatedAt:   time.Now(),
-		Status:      "New",
-		VideoURL:    "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+		ID:           "test-001",
+		VideoID:      "dQw4w9WgXcQ",
+		VideoTitle:   "Test Video Title",
+		ChannelName:  "Test Channel",
+		Summary:      "This is a test summary to verify that the email system is working correctly. If you receive this email, your YouTube summarizer email configuration is properly set up.",
+		CreatedAt:    time.Now(),
+		Status:       "New",
+		VideoURL:     "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+		PublishedAt:  time.Now().AddDate(0, 0, -1), // Yesterday
+		ThumbnailURL: "https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+		Duration:     "3:33",
+		ViewCount:    1234567890,
 	}
 
 	return es.SendDigest(ctx, []types.Summary{testSummary})
