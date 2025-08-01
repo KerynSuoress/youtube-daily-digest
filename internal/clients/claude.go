@@ -87,7 +87,7 @@ func (cc *ClaudeClient) Summarize(ctx context.Context, transcript, title string)
 	// Create the prompt
 	prompt := fmt.Sprintf(`Video Title: "%s"
 
-Summarize the key takeaways from the following video transcript into a concise paragraph. Focus on the main points and actionable advice:
+Summarize the key takeaways from the following youtubevideo into a concise paragraph. Focus on the main news events and the most important information:
 
 %s`, title, transcript)
 
@@ -131,9 +131,9 @@ Summarize the key takeaways from the following video transcript into a concise p
 	if resp.StatusCode != http.StatusOK {
 		var claudeError ClaudeError
 		if err := json.NewDecoder(resp.Body).Decode(&claudeError); err == nil {
-			return "", fmt.Errorf("Claude API error (%d): %s", resp.StatusCode, claudeError.Error.Message)
+			return "", fmt.Errorf("claude API error (%d): %s", resp.StatusCode, claudeError.Error.Message)
 		}
-		return "", fmt.Errorf("Claude API returned status %d", resp.StatusCode)
+		return "", fmt.Errorf("claude API returned status %d", resp.StatusCode)
 	}
 
 	// Parse the response
@@ -144,12 +144,12 @@ Summarize the key takeaways from the following video transcript into a concise p
 
 	// Extract the summary from the response
 	if len(claudeResponse.Content) == 0 {
-		return "", fmt.Errorf("Claude API returned empty content")
+		return "", fmt.Errorf("claude API returned empty content")
 	}
 
 	summary := strings.TrimSpace(claudeResponse.Content[0].Text)
 	if summary == "" {
-		return "", fmt.Errorf("Claude API returned empty summary")
+		return "", fmt.Errorf("claude API returned empty summary")
 	}
 
 	cc.logger.Info("Generated summary using Claude",
