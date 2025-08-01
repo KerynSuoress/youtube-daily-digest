@@ -1,13 +1,13 @@
 # YouTube Summarizer
 
-An enterprise-grade YouTube video summarizer built in Go that fetches videos from specified channels, generates AI-powered summaries using Claude, and sends email digests.
+An enterprise-grade YouTube video summarizer built in Go that fetches new videos from specified channels, generates AI-powered summaries using Claude, and optionally sends email digests. Runs on-demand - execute whenever you want fresh summaries.
 
 ## 🚀 Features
 
 - **Multi-Channel Monitoring**: Track videos from multiple YouTube channels
 - **AI-Powered Summaries**: Generate concise summaries using Claude API
 - **Excel Data Storage**: Store channel data, processed videos, and summaries in Excel format
-- **Email Digests**: Send beautiful HTML email digests (daily/weekly)
+- **Email Digests**: Send beautiful HTML email digests on-demand
 - **Cross-Platform**: Single executable for Windows, macOS, and Linux
 - **Enterprise Architecture**: Clean, maintainable Go code with proper interfaces
 - **Concurrent Processing**: Efficient parallel processing of multiple videos
@@ -87,16 +87,33 @@ You can find channel IDs from YouTube URLs or using the YouTube API.
 -help             Show help message
 ```
 
+### On-Demand Execution
+
+The application runs once and exits. Each execution processes all new videos from your configured channels.
+
+**Manual Execution:**
+```bash
+# Run whenever you want fresh summaries
+./youtube-summarizer
+```
+
+**Optional: Automated Execution**
+If you want regular processing, you can use system schedulers:
+- **Linux/macOS**: cron jobs
+- **Windows**: Task Scheduler
+- **Future**: Your UI can trigger execution on-demand
+
 ## ⚙️ Configuration
 
 The application uses `configs/config.yaml` for configuration:
 
 ```yaml
 app:
-  check_frequency: "daily"  # daily, weekly, hourly
-  email_frequency: "weekly" # daily, weekly
+  # Maximum videos to process on first run (to avoid overwhelming when starting fresh)
+  max_videos_on_first_run: 10
 
 youtube:
+  # Maximum videos to process per channel each run
   max_videos_per_channel: 5
 
 processing:

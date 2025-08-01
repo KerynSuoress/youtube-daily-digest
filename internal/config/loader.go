@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"strings"
 
 	"youtube-summarizer/pkg/types"
 
@@ -23,23 +22,21 @@ func NewLoader(configPath, envPath string) *Loader {
 	}
 }
 
-// Load loads configuration from file and environment variables
+// Load loads configuration from config file only (single source of truth)
 func (l *Loader) Load() (*types.Config, error) {
 	// Start with default configuration
 	config := DefaultConfig()
 
-	// Set up viper
+	// Set up viper to read from config file only
 	viper.SetConfigFile(l.configPath)
 	viper.SetConfigType("yaml")
 
-	// Enable environment variable support
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-
-	// Read config file if it exists
+	// Read config file (required for proper operation)
 	if err := viper.ReadInConfig(); err != nil {
-		// Config file is optional - we can work with defaults and env vars
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			// Config file not found - use defaults
+			// This is acceptable for testing but log a warning
+		} else {
 			return nil, fmt.Errorf("failed to read config file: %w", err)
 		}
 	}
@@ -57,46 +54,23 @@ func (l *Loader) Load() (*types.Config, error) {
 	return config, nil
 }
 
-// LoadFromEnvironment loads only environment variables (useful for testing)
-func LoadFromEnvironment() (*types.Config, error) {
-	config := DefaultConfig()
+// Removed LoadFromEnvironment - config.yaml is the single source of truth
 
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+// SaveConfig saves configuration to the specified file (for UI integration)
+func (l *Loader) SaveConfig(config *types.Config) error {
+	viper.Set("app", config.App)
+	viper.Set("youtube", config.YouTube)
+	viper.Set("processing", config.Processing)
+	viper.Set("email", config.Email)
+	viper.Set("ai", config.AI)
 
-	// Manually bind environment variables to config
-	bindEnvVars()
-
-	if err := viper.Unmarshal(config); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config from environment: %w", err)
-	}
-
-	if err := Validate(config); err != nil {
-		return nil, fmt.Errorf("config validation failed: %w", err)
-	}
-
-	return config, nil
+	return viper.WriteConfigAs(l.configPath)
 }
 
 // bindEnvVars manually binds environment variables to viper keys
+// Only API keys and secrets should be environment variables
+// All configuration should come from config.yaml for UI compatibility
 func bindEnvVars() {
-	// App configuration
-	viper.BindEnv("app.check_frequency", "APP_CHECK_FREQUENCY")
-	viper.BindEnv("app.email_frequency", "APP_EMAIL_FREQUENCY")
-
-	// YouTube configuration
-	viper.BindEnv("youtube.max_videos_per_channel", "YOUTUBE_MAX_VIDEOS_PER_CHANNEL")
-
-	// Processing configuration
-	viper.BindEnv("processing.max_concurrent_videos", "PROCESSING_MAX_CONCURRENT_VIDEOS")
-	viper.BindEnv("processing.transcript_timeout", "PROCESSING_TRANSCRIPT_TIMEOUT")
-
-	// Email configuration
-	viper.BindEnv("email.smtp_host", "EMAIL_SMTP_HOST")
-	viper.BindEnv("email.smtp_port", "EMAIL_SMTP_PORT")
-	viper.BindEnv("email.subject_template", "EMAIL_SUBJECT_TEMPLATE")
-
-	// AI configuration
-	viper.BindEnv("ai.max_transcript_length", "AI_MAX_TRANSCRIPT_LENGTH")
-	viper.BindEnv("ai.summary_prompt", "AI_SUMMARY_PROMPT")
+	// No configuration environment variables - config.yaml is the single source of truth
+	// API keys remain as environment variables since they're secrets
 }

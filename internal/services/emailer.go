@@ -391,7 +391,7 @@ const defaultEmailTemplate = `<!DOCTYPE html>
 <body>
     <div class="container">
         <div class="header">
-            <h1>YouTube Daily Digest</h1>
+            <h1>YouTube Video Digest</h1>
             <p>{{.Date}}</p>
         </div>
 

@@ -6,10 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/signal"
 	"path/filepath"
-	"syscall"
-	"time"
 
 	"github.com/joho/godotenv"
 
@@ -169,29 +166,26 @@ func initializeApp(cfg *types.Config, excelPath string, appLogger *logger.Logger
 	}, nil
 }
 
-// runApp runs the main application loop
+// runApp runs the application once and exits (on-demand processing)
 func runApp(app *App, appLogger *logger.Logger) error {
-	// Create context for graceful shutdown
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	// Create context for processing
+	ctx := context.Background()
 
-	// Handle shutdown signals
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	appLogger.Info("Starting on-demand video processing")
 
-	// Run initial processing
-	appLogger.Info("Starting initial video processing")
+	// Process all new videos from configured channels
 	if err := app.processor.ProcessNewVideos(ctx); err != nil {
 		appLogger.Error("Failed to process videos", err)
 		return err
 	}
 
-	// Send email digest if there are pending summaries
+	// Send email digest if there are pending summaries and email is configured
 	if app.emailService != nil {
 		summaries, err := app.processor.ProcessPendingSummariesForEmail(ctx)
 		if err != nil {
 			appLogger.Error("Failed to get summaries for email", err)
 		} else if len(summaries) > 0 {
+			appLogger.Info("Sending email digest", "summaryCount", len(summaries))
 			if err := app.emailService.SendDigest(ctx, summaries); err != nil {
 				appLogger.Error("Failed to send email digest", err)
 			} else {
@@ -202,85 +196,28 @@ func runApp(app *App, appLogger *logger.Logger) error {
 				}
 				if err := app.storage.MarkSummariesProcessed(ctx, summaryIDs); err != nil {
 					appLogger.Error("Failed to mark summaries as processed", err)
+				} else {
+					appLogger.Info("Email digest sent successfully")
 				}
 			}
+		} else {
+			appLogger.Info("No new summaries to email")
 		}
 	}
 
-	// Set up ticker for periodic processing
-	var ticker *time.Ticker
-	switch app.config.App.CheckFrequency {
-	case "hourly":
-		ticker = time.NewTicker(1 * time.Hour)
-	case "daily":
-		ticker = time.NewTicker(24 * time.Hour)
-	case "weekly":
-		ticker = time.NewTicker(7 * 24 * time.Hour)
-	default:
-		ticker = time.NewTicker(24 * time.Hour) // Default to daily
-	}
-	defer ticker.Stop()
-
-	appLogger.Info("YouTube Summarizer started successfully", "checkFrequency", app.config.App.CheckFrequency)
-
-	// Main application loop
-	for {
-		select {
-		case <-ctx.Done():
-			appLogger.Info("Context cancelled, shutting down")
-			return nil
-
-		case sig := <-sigChan:
-			appLogger.Info("Received shutdown signal", "signal", sig)
-			cancel()
-
-		case <-ticker.C:
-			appLogger.Info("Running periodic video processing")
-
-			// Process videos
-			if err := app.processor.ProcessNewVideos(ctx); err != nil {
-				appLogger.Error("Periodic video processing failed", err)
-				continue
-			}
-
-			// Send email digest if configured and it's time
-			if app.emailService != nil && app.shouldSendEmail() {
-				summaries, err := app.processor.ProcessPendingSummariesForEmail(ctx)
-				if err != nil {
-					appLogger.Error("Failed to get summaries for email", err)
-					continue
-				}
-
-				if len(summaries) > 0 {
-					if err := app.emailService.SendDigest(ctx, summaries); err != nil {
-						appLogger.Error("Failed to send email digest", err)
-					} else {
-						// Mark summaries as processed
-						summaryIDs := make([]string, len(summaries))
-						for i, summary := range summaries {
-							summaryIDs[i] = summary.ID
-						}
-						if err := app.storage.MarkSummariesProcessed(ctx, summaryIDs); err != nil {
-							appLogger.Error("Failed to mark summaries as processed", err)
-						}
-					}
-				}
-			}
-		}
-	}
+	appLogger.Info("YouTube Summarizer completed successfully")
+	return nil
 }
 
-// shouldSendEmail determines if it's time to send an email digest
-func (app *App) shouldSendEmail() bool {
-	// Simple implementation - always send when there are summaries
-	// In a more sophisticated version, this would check the last email sent time
-	// and the configured email frequency
-	return true
-}
+// Removed shouldSendEmail - no longer needed for on-demand processing
 
 // printHelp prints usage information
 func printHelp() {
-	fmt.Printf(`YouTube Summarizer - Enterprise Go Application
+	fmt.Printf(`YouTube Summarizer - On-Demand Video Processing
+
+DESCRIPTION:
+    Processes new videos from configured YouTube channels, generates AI summaries,
+    and optionally sends email digests. Runs once and exits (on-demand model).
 
 USAGE:
     %s [OPTIONS]
@@ -301,17 +238,26 @@ ENVIRONMENT VARIABLES:
     EMAIL_PASSWORD     Email password for SMTP (optional)
 
 EXAMPLES:
-    # Run with default configuration
+    # Process new videos and send digest
     %s
 
-    # Run in development mode
+    # Run in development mode with verbose logging
     %s -dev
 
     # Test email configuration
     %s -test-email
 
-    # Use custom paths
+    # Use custom configuration and data files
     %s -config ./my-config.yaml -excel ./my-data.xlsx
+
+NOTES:
+    This application runs once and exits. It processes all new videos from
+    configured channels and optionally sends an email digest.
+    
+    For regular processing, you can:
+    - Run manually when you want fresh summaries
+    - Use system schedulers (cron, Task Scheduler) if desired
+    - Integrate with your future UI for on-demand execution
 
 DOCUMENTATION:
     For detailed setup instructions, see README.md

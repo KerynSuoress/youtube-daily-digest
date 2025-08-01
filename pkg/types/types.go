@@ -57,8 +57,9 @@ type Config struct {
 }
 
 type AppConfig struct {
-	CheckFrequency string `yaml:"check_frequency"` // daily, weekly, hourly
-	EmailFrequency string `yaml:"email_frequency"` // daily, weekly
+	// Removed scheduling - app now runs on-demand
+	// MaxVideosOnFirstRun limits videos processed when running for the first time
+	MaxVideosOnFirstRun int `yaml:"max_videos_on_first_run"`
 }
 
 type YouTubeConfig struct {

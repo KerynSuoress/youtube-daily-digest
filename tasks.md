@@ -1,7 +1,15 @@
 # YouTube Summarizer Go Project - Task List
 
 ## Project Overview
-Building an enterprise-grade YouTube video summarizer in Go that fetches videos from specified channels, gets transcripts, summarizes them using Claude API, stores data in Excel files, and sends configurable email digests.
+Building an enterprise-grade YouTube video summarizer in Go that fetches videos from specified channels, gets transcripts, summarizes them using Claude API, stores data in Excel files, and sends email digests on-demand.
+
+**Current Status: v1.1.0 - PRODUCTION READY** 🎉
+- ✅ Clean on-demand processing model (no internal scheduling)
+- ✅ Single source of truth configuration (`config.yaml`)
+- ✅ UI-ready architecture with clean interfaces
+- ✅ Cross-platform executables for Windows, macOS, Linux
+- ✅ Comprehensive error handling and logging
+- ✅ Enterprise-grade Go patterns and structure
 
 ## Development Game Plan
 
@@ -35,7 +43,7 @@ Building an enterprise-grade YouTube video summarizer in Go that fetches videos 
 
 ### Phase 5: Email & Notification System
 - [ ] Create email service with SMTP
-- [ ] Implement digest generation (daily/weekly)
+- [x] Implement digest generation (on-demand) - **REFACTORED v1.1.0**
 - [ ] Add email templating
 - [ ] Create notification scheduling
 
@@ -155,3 +163,41 @@ Building an enterprise-grade YouTube video summarizer in Go that fetches videos 
   - Full feature implementation across all 8 phases
   - Cross-platform builds ready for distribution
   - Production-ready with comprehensive documentation
+
+- v1.1.0 - 🧹 **MAJOR CLEANUP & ON-DEMAND REFACTOR**
+  - **Configuration Consolidation**: Fixed hardcoded config conflicts
+    - Unified `max_videos_per_channel: 5` across all config files
+    - Replaced scheduling config with `max_videos_on_first_run: 10`
+    - Removed environment variable overrides for config (keeping only API keys)
+    - Single source of truth: `config.yaml` file only (UI-ready)
+  
+  - **On-Demand Processing Model**: Removed internal scheduling system
+    - Eliminated daily/weekly/hourly scheduling logic
+    - Removed ticker-based continuous processing loop
+    - App now runs once and exits (perfect for cron/Task Scheduler/UI)
+    - Simplified main application flow
+  
+  - **Code Cleanup**: Removed legacy scheduling infrastructure
+    - Removed unused imports (os/signal, syscall, time, strings)
+    - Removed `shouldSendEmail()` function
+    - Removed `LoadFromEnvironment()` function
+    - Removed environment variable bindings for configuration
+    - Added `SaveConfig()` function for future UI integration
+  
+  - **Documentation Updates**: Aligned docs with new on-demand model
+    - Updated help text to focus on manual execution
+    - Changed email template from "Daily Digest" to "Video Digest"
+    - Updated README files to emphasize on-demand execution
+    - Removed prescriptive scheduling instructions
+  
+  - **Git Configuration**: Fixed repository hygiene
+    - Fixed `.gitignore` for `summarizer` executable
+    - Created `.env.example` template for API keys
+  
+  - **Benefits Achieved**:
+    - ✅ Simpler architecture (no internal scheduling complexity)
+    - ✅ More reliable (system schedulers > internal timers)
+    - ✅ Better resource usage (doesn't run continuously)
+    - ✅ UI-ready (single config file, clean interfaces)
+    - ✅ More flexible (users control when it runs)
+    - ✅ Easier debugging (each run is independent)

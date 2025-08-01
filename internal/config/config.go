@@ -11,11 +11,10 @@ import (
 func DefaultConfig() *types.Config {
 	return &types.Config{
 		App: types.AppConfig{
-			CheckFrequency: "daily",
-			EmailFrequency: "weekly",
+			MaxVideosOnFirstRun: 10,
 		},
 		YouTube: types.YouTubeConfig{
-			MaxVideosPerChannel: 1,
+			MaxVideosPerChannel: 5,
 		},
 		Processing: types.ProcessingConfig{
 			MaxConcurrentVideos: 3,
@@ -37,20 +36,8 @@ func DefaultConfig() *types.Config {
 
 // Validate checks if the configuration is valid
 func Validate(c *types.Config) error {
-	if c.App.CheckFrequency == "" {
-		return fmt.Errorf("app.check_frequency cannot be empty")
-	}
-
-	if c.App.CheckFrequency != "daily" && c.App.CheckFrequency != "weekly" && c.App.CheckFrequency != "hourly" {
-		return fmt.Errorf("app.check_frequency must be 'daily', 'weekly', or 'hourly'")
-	}
-
-	if c.App.EmailFrequency == "" {
-		return fmt.Errorf("app.email_frequency cannot be empty")
-	}
-
-	if c.App.EmailFrequency != "daily" && c.App.EmailFrequency != "weekly" {
-		return fmt.Errorf("app.email_frequency must be 'daily' or 'weekly'")
+	if c.App.MaxVideosOnFirstRun <= 0 {
+		return fmt.Errorf("app.max_videos_on_first_run must be greater than 0")
 	}
 
 	if c.YouTube.MaxVideosPerChannel <= 0 {

@@ -1,10 +1,11 @@
 # YouTube Summarizer Configuration
 
 app:
-  check_frequency: "daily"  # daily, weekly, hourly
-  email_frequency: "weekly" # daily, weekly
+  # Maximum videos to process on first run (to avoid overwhelming when starting fresh)
+  max_videos_on_first_run: 10
 
 youtube:
+  # Maximum videos to process per channel each run
   max_videos_per_channel: 5
 
 processing:
