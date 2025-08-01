@@ -3,6 +3,7 @@
 # Binaries and executables
 youtube-summarizer
 youtube-summarizer-*
+./summarizer
 *.exe
 *.exe~
 *.dll
