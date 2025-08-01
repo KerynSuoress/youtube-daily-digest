@@ -22,6 +22,7 @@ youtube-summarizer-*
 
 # Excel data files (contains processed videos and summaries)
 youtube-data.xlsx
+youtube-data.xlsx.backup
 *.xlsx
 *.xls
 
